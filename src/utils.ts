@@ -19,6 +19,36 @@ export function showToast(message: string, type: "success" | "error" = "success"
 	setTimeout(() => toast.remove(), 4000);
 }
 
+export function setButtonLoading(
+	button: HTMLButtonElement | null,
+	isLoading: boolean,
+	loadingText = "Loading..."
+): void {
+	if (!button) return;
+
+	if (isLoading) {
+		if (!button.dataset.originalHtml) {
+			button.dataset.originalHtml = button.innerHTML;
+		}
+		button.disabled = true;
+		button.classList.add("is-loading");
+		button.setAttribute("aria-busy", "true");
+		button.innerHTML = `
+      <span class="spinner" aria-hidden="true"></span>
+      <span>${loadingText}</span>
+    `;
+		return;
+	}
+
+	const originalHtml = button.dataset.originalHtml;
+	if (originalHtml) {
+		button.innerHTML = originalHtml;
+	}
+	button.disabled = false;
+	button.classList.remove("is-loading");
+	button.removeAttribute("aria-busy");
+}
+
 export function copyToClipboard(text: string): Promise<void> {
 	return navigator.clipboard.writeText(text).then(() => {
 		showToast("✓ Copied to clipboard!");

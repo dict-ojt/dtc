@@ -1,4 +1,4 @@
-import { showToast, showConfirmation } from "../utils";
+import { showToast, showConfirmation, setButtonLoading } from "../utils";
 import { api } from "../api";
 import { validateCheckIn } from "../types";
 import type { LogEntryRequest, Service } from "../types";
@@ -94,6 +94,7 @@ export function setupCheckInForm(): void {
 
 	form?.addEventListener("submit", async (e) => {
 		e.preventDefault();
+		const loginBtn = document.getElementById("loginBtn") as HTMLButtonElement | null;
 
 		const userId = userIdInput.value.toUpperCase();
 		const services = Array.from(
@@ -122,6 +123,7 @@ export function setupCheckInForm(): void {
 
 		// Get user info for confirmation
 		try {
+			setButtonLoading(loginBtn, true, "Verifying...");
 			const userResponse = await api.getUser(userId);
 			if (!userResponse.success || !userResponse.user) {
 				showToast("User ID not found. Please register first.", "error");
@@ -135,6 +137,7 @@ export function setupCheckInForm(): void {
 			);
 			if (!confirmed) return;
 
+			setButtonLoading(loginBtn, true, "Checking in...");
 			const response = await api.logEntry(checkInData);
 			if (response.success) {
 				showToast(`✓ Check-in successful! Services: ${services.join(", ")}`);
@@ -144,6 +147,8 @@ export function setupCheckInForm(): void {
 			}
 		} catch (error) {
 			showToast(error instanceof Error ? error.message : "Check-in failed", "error");
+		} finally {
+			setButtonLoading(loginBtn, false);
 		}
 	});
 }

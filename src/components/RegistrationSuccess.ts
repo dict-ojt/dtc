@@ -1,4 +1,4 @@
-import { copyToClipboard, downloadQRImage, generateQRCode } from "../utils";
+import { copyToClipboard, downloadQRImage, generateQRCode, setButtonLoading } from "../utils";
 
 export function showRegistrationComplete(userId: string, onGoToCheckIn: () => void): void {
 	const qrUrl = generateQRCode(`${window.location.origin}${window.location.pathname}?id=${userId}`);
@@ -61,12 +61,24 @@ export function showRegistrationComplete(userId: string, onGoToCheckIn: () => vo
 	document.body.appendChild(modal);
 
 	// Setup button handlers
-	document.getElementById("copyUserIdBtn")?.addEventListener("click", () => {
-		copyToClipboard(userId);
+	document.getElementById("copyUserIdBtn")?.addEventListener("click", async () => {
+		const copyBtn = document.getElementById("copyUserIdBtn") as HTMLButtonElement | null;
+		try {
+			setButtonLoading(copyBtn, true, "Copying...");
+			await copyToClipboard(userId);
+		} finally {
+			setButtonLoading(copyBtn, false);
+		}
 	});
 
-	document.getElementById("downloadQrBtn")?.addEventListener("click", () => {
-		downloadQRImage(qrUrl, `qr-code-${userId}.png`);
+	document.getElementById("downloadQrBtn")?.addEventListener("click", async () => {
+		const downloadBtn = document.getElementById("downloadQrBtn") as HTMLButtonElement | null;
+		try {
+			setButtonLoading(downloadBtn, true, "Downloading...");
+			await downloadQRImage(qrUrl, `qr-code-${userId}.png`);
+		} finally {
+			setButtonLoading(downloadBtn, false);
+		}
 	});
 
 	document.getElementById("quickCheckInBtn")?.addEventListener("click", () => {

@@ -1,4 +1,4 @@
-import { showToast, showConfirmation, updateAgeGroup } from "../utils";
+import { showToast, showConfirmation, updateAgeGroup, setButtonLoading } from "../utils";
 import { api } from "../api";
 import { validateRegistration } from "../types";
 import type { CreateUserRequest } from "../types";
@@ -370,6 +370,7 @@ export function setupRegistrationForm(onSuccess: (userId: string) => void): void
 
 	form?.addEventListener("submit", async (e) => {
 		e.preventDefault();
+		const submitBtn = document.getElementById("submitBtn") as HTMLButtonElement | null;
 
 		const confirmed = await showConfirmation(
 			"Confirm Submission",
@@ -418,6 +419,7 @@ export function setupRegistrationForm(onSuccess: (userId: string) => void): void
 		}
 
 		try {
+			setButtonLoading(submitBtn, true, "Submitting...");
 			const response = await api.createUser(registrationData);
 			if (response.success && response.user) {
 				showToast(`✓ Registration successful! Your ID is: ${response.user.user_id}`);
@@ -435,6 +437,8 @@ export function setupRegistrationForm(onSuccess: (userId: string) => void): void
 			}
 		} catch (error) {
 			showToast(error instanceof Error ? error.message : "Registration failed", "error");
+		} finally {
+			setButtonLoading(submitBtn, false);
 		}
 	});
 }

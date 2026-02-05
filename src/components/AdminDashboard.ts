@@ -1,4 +1,4 @@
-import { showToast } from "../utils";
+import { showToast, setButtonLoading } from "../utils";
 import { api } from "../api";
 import type { UserRegistration, CheckInEntry, Service } from "../types";
 
@@ -161,6 +161,10 @@ export function AdminDashboard(): string {
             </div>
           </div>
 
+          <div id="regLoading" class="loading-card" style="display: none;">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Loading registrations...</span>
+          </div>
           <div style="overflow-x: auto;">
             <table id="registrationTable">
               <thead>
@@ -203,6 +207,15 @@ export function AdminDashboard(): string {
             <h2 class="text-xl font-bold text-slate-800">Recent Check-ins</h2>
           </div>
 
+          <div style="display: flex; justify-content: flex-end; margin: 6px 0 12px;">
+            <button id="exportCheckinsBtn" class="confirm-no" style="padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h5.66V9h3.84L12 2z"/>
+              </svg>
+              Export CSV
+            </button>
+          </div>
+
           <!-- Filters -->
           <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #10b981; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
@@ -233,6 +246,10 @@ export function AdminDashboard(): string {
             </div>
           </div>
 
+          <div id="checkinLoading" class="loading-card" style="display: none;">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Loading check-ins...</span>
+          </div>
           <div style="overflow-x: auto;">
             <table id="checkinTable">
               <thead>
@@ -272,15 +289,21 @@ export function setupAdminDashboard(): void {
 
 	loginForm?.addEventListener("submit", async (e) => {
 		e.preventDefault();
+		const loginBtn = document.getElementById("adminLoginBtn") as HTMLButtonElement | null;
 
 		const username = (document.getElementById("adminUsername") as HTMLInputElement).value;
 		const password = (document.getElementById("adminPassword") as HTMLInputElement).value;
 
 		if (username === "admin" && password === "Password123!") {
-			loginForm.style.display = "none";
-			dashboard.style.display = "block";
-			await loadAdminData();
-			showToast("✓ Admin login successful!");
+			try {
+				setButtonLoading(loginBtn, true, "Signing in...");
+				loginForm.style.display = "none";
+				dashboard.style.display = "block";
+				await loadAdminData();
+				showToast("✓ Admin login successful!");
+			} finally {
+				setButtonLoading(loginBtn, false);
+			}
 		} else {
 			showToast("Invalid credentials", "error");
 		}
@@ -291,6 +314,10 @@ export function setupAdminDashboard(): void {
 		loginForm.style.display = "block";
 		loginForm.reset();
 		showToast("Logged out");
+	});
+
+	document.getElementById("exportCheckinsBtn")?.addEventListener("click", () => {
+		exportCheckinsCsv();
 	});
 
 	// Setup filter listeners
@@ -336,6 +363,11 @@ export function setupAdminDashboard(): void {
 }
 
 async function loadAdminData() {
+	const regLoading = document.getElementById("regLoading") as HTMLDivElement | null;
+	const checkinLoading = document.getElementById("checkinLoading") as HTMLDivElement | null;
+	if (regLoading) regLoading.style.display = "flex";
+	if (checkinLoading) checkinLoading.style.display = "flex";
+
 	try {
 		// Load stats
 		const statsResponse = await api.getStats();
@@ -364,6 +396,9 @@ async function loadAdminData() {
 		}
 	} catch (error) {
 		showToast("Failed to load admin data", "error");
+	} finally {
+		if (regLoading) regLoading.style.display = "none";
+		if (checkinLoading) checkinLoading.style.display = "none";
 	}
 }
 
@@ -522,4 +557,44 @@ function displayCheckinPage() {
 	const nextBtn = document.getElementById("checkinNextBtn") as HTMLButtonElement;
 	if (prevBtn) prevBtn.disabled = checkinCurrentPage === 1;
 	if (nextBtn) nextBtn.disabled = checkinCurrentPage === totalPages;
+}
+
+function exportCheckinsCsv() {
+	if (filteredCheckins.length === 0) {
+		showToast("No check-ins to export", "error");
+		return;
+	}
+
+	const header = ["User ID", "Name", "Services", "Check-in Time"];
+	const rows = filteredCheckins.map((entry) => {
+		const reg = registrations.find((r) => r.user_id === entry.user_id);
+		const name = reg ? `${reg.first_name} ${reg.last_name}` : "Unknown";
+		const services = entry.services.join("; ");
+		const checkinTime = new Date(entry.entry_time * 1000).toLocaleString();
+		return [entry.user_id, name, services, checkinTime].map(escapeCsvValue);
+	});
+
+	const csv = [header.map(escapeCsvValue).join(","), ...rows.map((row) => row.join(","))].join("\n");
+	const today = new Date().toISOString().slice(0, 10);
+	downloadCsvFile(csv, `attendance-logs-${today}.csv`);
+}
+
+function escapeCsvValue(value: string): string {
+	if (/[",\n]/.test(value)) {
+		return `"${value.replace(/"/g, '""')}"`;
+	}
+	return value;
+}
+
+function downloadCsvFile(csv: string, filename: string) {
+	const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+	const url = window.URL.createObjectURL(blob);
+	const link = document.createElement("a");
+	link.href = url;
+	link.download = filename;
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+	window.URL.revokeObjectURL(url);
+	showToast("✓ Attendance logs exported!");
 }

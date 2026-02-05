@@ -15,12 +15,18 @@ export function QRScanner(): string {
 
         <!-- Upload Area -->
         <div id="uploadArea" class="upload-area">
-          <svg width="64" height="64" fill="#0ea5e9" viewBox="0 0 24 24" style="margin: 0 auto 16px; display: block; opacity: 0.5;">
-            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-          </svg>
-          <p style="font-size: 18px; font-weight: 600; color: #0c4a6e; margin-bottom: 8px;">Drag and drop QR code image</p>
-          <p style="color: #64748b; margin-bottom: 12px;">or click to browse</p>
-          <input type="file" id="qrFileInput" accept="image/*" style="display: none;">
+          <div class="upload-content">
+            <svg width="64" height="64" fill="#0ea5e9" viewBox="0 0 24 24" style="margin: 0 auto 16px; display: block; opacity: 0.5;">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+            <p style="font-size: 18px; font-weight: 600; color: #0c4a6e; margin-bottom: 8px;">Drag and drop QR code image</p>
+            <p style="color: #64748b; margin-bottom: 12px;">or click to browse</p>
+            <input type="file" id="qrFileInput" accept="image/*" style="display: none;">
+          </div>
+          <div class="upload-loading" aria-live="polite">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Scanning QR code...</span>
+          </div>
         </div>
 
         <!-- Result Area -->
@@ -82,9 +88,22 @@ export function setupQRScanner(onQRDetected: (userId: string) => void): void {
 	function handleQRFile(file: File) {
 		if (!file) return;
 
+		const uploadAreaEl = uploadArea as HTMLDivElement | null;
+		if (uploadAreaEl) {
+			uploadAreaEl.classList.add("is-loading");
+		}
+
 		const reader = new FileReader();
+		reader.onerror = () => {
+			showToast("Error processing QR Code", "error");
+			if (uploadAreaEl) uploadAreaEl.classList.remove("is-loading");
+		};
 		reader.onload = (e) => {
 			const img = new Image();
+			img.onerror = () => {
+				showToast("Error processing QR Code", "error");
+				if (uploadAreaEl) uploadAreaEl.classList.remove("is-loading");
+			};
 			img.onload = () => {
 				const canvas = document.createElement("canvas");
 				const ctx = canvas.getContext("2d");
@@ -102,6 +121,8 @@ export function setupQRScanner(onQRDetected: (userId: string) => void): void {
 					showToast("QR scanning requires jsQR library. Please enter your User ID manually.", "error");
 				} catch (err) {
 					showToast("Error processing QR Code", "error");
+				} finally {
+					if (uploadAreaEl) uploadAreaEl.classList.remove("is-loading");
 				}
 			};
 			img.src = e.target?.result as string;
