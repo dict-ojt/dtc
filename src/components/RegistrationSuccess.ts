@@ -1,4 +1,4 @@
-import { copyToClipboard, copyQRImageToClipboard, generateQRCode } from "../utils";
+import { copyToClipboard, downloadQRImage, generateQRCode } from "../utils";
 
 export function showRegistrationComplete(userId: string, onGoToCheckIn: () => void): void {
 	const qrUrl = generateQRCode(`${window.location.origin}${window.location.pathname}?id=${userId}`);
@@ -34,9 +34,9 @@ export function showRegistrationComplete(userId: string, onGoToCheckIn: () => vo
         <p style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 12px;">📱 SCAN THIS QR CODE</p>
         <img id="qrCodeImage" src="${qrUrl}" alt="Check-in QR Code" style="width: 200px; height: 200px; margin: 0 auto; display: block;">
         <div style="display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap;">
-          <button type="button" class="copy-btn" id="copyQrBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-            Copy QR Code
+          <button type="button" class="download-btn" id="downloadQrBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            Download QR Image
           </button>
         </div>
       </div>
@@ -65,8 +65,8 @@ export function showRegistrationComplete(userId: string, onGoToCheckIn: () => vo
 		copyToClipboard(userId);
 	});
 
-	document.getElementById("copyQrBtn")?.addEventListener("click", () => {
-		copyQRImageToClipboard(qrUrl);
+	document.getElementById("downloadQrBtn")?.addEventListener("click", () => {
+		downloadQRImage(qrUrl, `qr-code-${userId}.png`);
 	});
 
 	document.getElementById("quickCheckInBtn")?.addEventListener("click", () => {

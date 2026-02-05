@@ -40,6 +40,24 @@ export async function copyQRImageToClipboard(qrUrl: string): Promise<void> {
 	}
 }
 
+export async function downloadQRImage(qrUrl: string, filename: string): Promise<void> {
+	try {
+		const response = await fetch(qrUrl);
+		const blob = await response.blob();
+		const url = window.URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = filename;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		window.URL.revokeObjectURL(url);
+		showToast("✓ QR image downloaded!");
+	} catch {
+		showToast("Failed to download QR image", "error");
+	}
+}
+
 export function generateQRCode(text: string): string {
 	const encodedText = encodeURIComponent(text);
 	return `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodedText}`;
