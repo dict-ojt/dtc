@@ -1360,12 +1360,5 @@ function handleSecurityUpdate(): void {
 	(document.getElementById("securityForm") as HTMLFormElement)?.reset();
 }
 
-// Listen for system theme changes
-window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-	if (currentTheme === "system") {
-		applyTheme("system");
-	}
-});
-
 // Initialize app
 renderApp();
