@@ -10,14 +10,20 @@ export function QRScanner(): string {
     <div id="qrScanSection" class="tab-content">
       <!-- QR Welcome Card -->
       <div class="qr-welcome-card">
-        <div class="qr-welcome-icon">
-          <svg width="56" height="56" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13-1h-2v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/>
-          </svg>
+        <div class="qr-welcome-content">
+          <div class="qr-welcome-icon">
+            <svg width="56" height="56" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13-1h-2v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/>
+            </svg>
+          </div>
+          <div class="qr-welcome-text">
+            <h2>Quick Check-In</h2>
+            <p>Scan your QR code for instant access</p>
+          </div>
         </div>
-        <div class="qr-welcome-text">
-          <h2>Quick Check-In</h2>
-          <p>Scan your QR code for instant access</p>
+        <div class="qr-welcome-qr">
+          <p class="qr-welcome-qr-text">New? Scan to Register</p>
+          <img src="./dtc-logo.png" alt="Scan to Register" class="qr-welcome-image" loading="lazy">
         </div>
       </div>
 
@@ -123,6 +129,7 @@ export function QRScanner(): string {
           </button>
         </div>
       </div>
+
     </div>
   `;
 }
