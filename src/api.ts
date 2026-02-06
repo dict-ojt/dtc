@@ -7,6 +7,7 @@ import type {
 	UsersListResponse,
 	DashboardStats,
 	Service,
+	DeleteResponse,
 } from "./types";
 
 const API_BASE_URL = "https://dict-db.stevendavemiranda2.workers.dev";
@@ -101,5 +102,19 @@ export const api = {
 	// Health check
 	async healthCheck(): Promise<{ status: string; timestamp: string }> {
 		return apiRequest<{ status: string; timestamp: string }>("/api/health");
+	},
+
+	// Delete all users (registrations)
+	async deleteAllUsers(): Promise<DeleteResponse> {
+		return apiRequest<DeleteResponse>("/api/users", {
+			method: "DELETE",
+		});
+	},
+
+	// Delete all logs (check-ins)
+	async deleteAllLogs(): Promise<DeleteResponse> {
+		return apiRequest<DeleteResponse>("/api/logs", {
+			method: "DELETE",
+		});
 	},
 };

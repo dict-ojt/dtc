@@ -1680,6 +1680,28 @@ tbody tr:hover {
   box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
 }
 
+/* ===== Delete Button ===== */
+.delete-btn {
+  padding: 0.625rem 1rem;
+  background: linear-gradient(135deg, var(--accent-500) 0%, var(--accent-600) 100%);
+  color: var(--white);
+  border: none;
+  border-radius: 0.625rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.delete-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(206, 17, 38, 0.3);
+}
+
 /* ===== Legacy Utility Classes ===== */
 .h-full {
   height: 100%;

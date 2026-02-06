@@ -422,6 +422,12 @@ function renderDashboard(app: HTMLElement): void {
             </div>
             <div class="filters-actions">
               <button id="clearFilters" class="clear-filters-btn">Clear Filters</button>
+              <button id="deleteAllBtn" class="delete-btn">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+                Delete All
+              </button>
               <button id="exportBtn" class="export-btn">
                 <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
@@ -468,6 +474,41 @@ function renderDashboard(app: HTMLElement): void {
       <div id="sidebarOverlay" class="sidebar-overlay"></div>
     </div>
     <div id="toastContainer"></div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="admin-modal">
+      <div class="admin-modal-content">
+        <div class="admin-modal-header" style="border-bottom-color: #dc2626;">
+          <h3 style="color: #dc2626;">
+            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+            </svg>
+            Delete All ${activeView === 'checkins' ? 'Check-ins' : 'Registrations'}
+          </h3>
+          <button id="closeDeleteModal" class="modal-close-btn">
+            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="admin-modal-body">
+          <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+            <p style="color: #dc2626; font-weight: 600; margin: 0 0 8px 0;">⚠️ Warning</p>
+            <p style="color: #7f1d1d; margin: 0; font-size: 14px;">
+              This action will permanently delete all ${activeView === 'checkins' ? 'check-in records' : 'user registrations'} from the database. 
+              This cannot be undone.
+            </p>
+          </div>
+          <p style="color: #374151; margin-bottom: 16px;">
+            Are you sure you want to proceed?
+          </p>
+          <div class="admin-modal-footer">
+            <button type="button" id="cancelDeleteBtn" class="cancel-btn">Cancel</button>
+            <button type="button" id="confirmDeleteBtn" class="submit-btn" style="background: #dc2626;">Delete All</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Security Modal -->
     <div id="securityModal" class="admin-modal">
@@ -687,6 +728,36 @@ function setupDashboard(): void {
 	// Export
 	document.getElementById("exportBtn")?.addEventListener("click", exportData);
 
+	// Delete All
+	const deleteBtn = document.getElementById("deleteAllBtn");
+	const deleteModal = document.getElementById("deleteModal");
+	const closeDeleteModal = document.getElementById("closeDeleteModal");
+	const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+	const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+
+	deleteBtn?.addEventListener("click", () => {
+		deleteModal?.classList.add("active");
+	});
+
+	closeDeleteModal?.addEventListener("click", () => {
+		deleteModal?.classList.remove("active");
+	});
+
+	cancelDeleteBtn?.addEventListener("click", () => {
+		deleteModal?.classList.remove("active");
+	});
+
+	deleteModal?.addEventListener("click", (e) => {
+		if (e.target === deleteModal) {
+			deleteModal.classList.remove("active");
+		}
+	});
+
+	confirmDeleteBtn?.addEventListener("click", async () => {
+		await handleDeleteAll();
+		deleteModal?.classList.remove("active");
+	});
+
 	// Pagination
 	document.getElementById("prevPage")?.addEventListener("click", () => {
 		if (activeView === "checkins") {
@@ -762,6 +833,41 @@ async function loadAdminData(): Promise<void> {
 		showToast("Failed to load admin data", "error");
 	} finally {
 		if (loading) loading.style.display = "none";
+	}
+}
+
+async function handleDeleteAll(): Promise<void> {
+	const confirmBtn = document.getElementById("confirmDeleteBtn") as HTMLButtonElement;
+	
+	try {
+		setButtonLoading(confirmBtn, true, "Deleting...");
+		
+		if (activeView === "checkins") {
+			const response = await api.deleteAllLogs();
+			if (response.success) {
+				showToast(`Successfully deleted ${response.deleted} check-in(s)`);
+				checkins = [];
+				checkinCurrentPage = 1;
+			} else {
+				showToast(response.error || "Failed to delete check-ins", "error");
+			}
+		} else {
+			const response = await api.deleteAllUsers();
+			if (response.success) {
+				showToast(`Successfully deleted ${response.deleted} registration(s)`);
+				registrations = [];
+				regCurrentPage = 1;
+			} else {
+				showToast(response.error || "Failed to delete registrations", "error");
+			}
+		}
+		
+		// Refresh stats and display
+		await loadAdminData();
+	} catch (error) {
+		showToast("Failed to delete data", "error");
+	} finally {
+		setButtonLoading(confirmBtn, false);
 	}
 }
 

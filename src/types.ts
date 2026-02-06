@@ -178,6 +178,13 @@ export interface DashboardStats {
 	services: ServiceStats;
 }
 
+// Delete response
+export interface DeleteResponse {
+	success: boolean;
+	deleted: number;
+	error?: string;
+}
+
 // Filter options for queries
 export interface LogFilters {
 	user_id?: string;

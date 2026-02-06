@@ -190,6 +190,12 @@ export function AdminDashboard(): string {
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 2px solid #e2e8f0; flex-wrap: wrap; gap: 12px;">
             <span id="regPaginationInfo" style="color: #64748b; font-size: 13px; font-weight: 600;">Page 1 of 1</span>
             <div style="display: flex; gap: 8px;">
+              <button id="regDeleteAllBtn" class="confirm-no" style="padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 6px; background: #dc2626; color: white;">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+                Delete All
+              </button>
               <button id="regPrevBtn" class="confirm-no" style="padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 6px;">← Prev</button>
               <button id="regNextBtn" class="confirm-no" style="padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 6px;">Next →</button>
             </div>
@@ -272,6 +278,12 @@ export function AdminDashboard(): string {
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 2px solid #e2e8f0; flex-wrap: wrap; gap: 12px;">
             <span id="checkinPaginationInfo" style="color: #64748b; font-size: 13px; font-weight: 600;">Page 1 of 1</span>
             <div style="display: flex; gap: 8px;">
+              <button id="checkinDeleteAllBtn" class="confirm-no" style="padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 6px; background: #dc2626; color: white;">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+                Delete All
+              </button>
               <button id="checkinPrevBtn" class="confirm-no" style="padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 6px;">← Prev</button>
               <button id="checkinNextBtn" class="confirm-no" style="padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 6px;">Next →</button>
             </div>
@@ -360,6 +372,64 @@ export function setupAdminDashboard(): void {
 			displayCheckinPage();
 		}
 	});
+
+	// Delete All buttons
+	document.getElementById("regDeleteAllBtn")?.addEventListener("click", async () => {
+		if (confirm("Are you sure you want to delete all registrations? This action cannot be undone.")) {
+			try {
+				const response = await api.deleteAllUsers();
+				if (response.success) {
+					showToast(`Successfully deleted ${response.deleted} registration(s)`);
+					registrations = [];
+					filteredRegistrations = [];
+					regCurrentPage = 1;
+					displayRegistrationPage();
+					updateStats();
+				} else {
+					showToast(response.error || "Failed to delete registrations", "error");
+				}
+			} catch (error) {
+				showToast("Failed to delete registrations", "error");
+			}
+		}
+	});
+
+	document.getElementById("checkinDeleteAllBtn")?.addEventListener("click", async () => {
+		if (confirm("Are you sure you want to delete all check-ins? This action cannot be undone.")) {
+			try {
+				const response = await api.deleteAllLogs();
+				if (response.success) {
+					showToast(`Successfully deleted ${response.deleted} check-in(s)`);
+					checkins = [];
+					filteredCheckins = [];
+					checkinCurrentPage = 1;
+					displayCheckinPage();
+					updateStats();
+				} else {
+					showToast(response.error || "Failed to delete check-ins", "error");
+				}
+			} catch (error) {
+				showToast("Failed to delete check-ins", "error");
+			}
+		}
+	});
+}
+
+async function updateStats() {
+	try {
+		const statsResponse = await api.getStats();
+		if (statsResponse.success) {
+			const stats = statsResponse.stats;
+			document.getElementById("totalRegistrations")!.textContent = stats.total_registrations.toString();
+			document.getElementById("totalCheckins")!.textContent = stats.total_checkins.toString();
+			document.getElementById("todayCheckins")!.textContent = stats.today_checkins.toString();
+			document.getElementById("printingCount")!.textContent = stats.services.printing.toString();
+			document.getElementById("pcUseCount")!.textContent = stats.services.pc_use.toString();
+			document.getElementById("trainingCount")!.textContent = stats.services.training.toString();
+		}
+	} catch (error) {
+		console.error("Failed to update stats", error);
+	}
 }
 
 async function loadAdminData() {
