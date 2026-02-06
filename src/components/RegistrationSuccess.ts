@@ -6,56 +6,103 @@ export function showRegistrationComplete(userId: string, onGoToCheckIn: () => vo
 	const modal = document.createElement("div");
 	modal.className = "confirmation-modal";
 	modal.innerHTML = `
-    <div class="confirmation-content" style="max-width: 550px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <svg width="64" height="64" fill="#10b981" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    <div class="success-modal-content">
+      <!-- Success Header -->
+      <div class="success-header">
+        <div class="success-icon-container">
+          <div class="success-icon-ring"></div>
+          <div class="success-icon">
+            <svg width="40" height="40" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+          </div>
+        </div>
+        <h3 class="success-title">Registration Complete!</h3>
+        <p class="success-subtitle">Welcome to DICT Data Training Center</p>
       </div>
-      <h3 style="font-size: 22px; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 8px;">Registration Successful!</h3>
-      <p style="color: #64748b; text-align: center; margin-bottom: 20px; font-size: 15px;">Your registration is complete. Use this ID to check in.</p>
       
-      <!-- User ID Display with Copy -->
-      <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9; border-radius: 12px; padding: 24px; margin-bottom: 20px;">
-        <p style="color: #0369a1; font-size: 12px; font-weight: 600; margin-bottom: 12px;">YOUR USER ID</p>
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-          <p style="color: #0c4a6e; font-size: 36px; font-weight: 700; font-family: monospace; letter-spacing: 3px; flex: 1;">${userId}</p>
-          <button type="button" class="copy-btn" id="copyUserIdBtn">
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+      <!-- User ID Card -->
+      <div class="user-id-card">
+        <div class="user-id-label">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+          </svg>
+          YOUR USER ID
+        </div>
+        <div class="user-id-value-container">
+          <span class="user-id-value">${userId}</span>
+          <button type="button" class="copy-id-btn" id="copyUserIdBtn">
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+            </svg>
             Copy
           </button>
         </div>
-        <button type="button" class="download-btn" id="quickCheckInBtn" style="margin: 0; width: 100%; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);">
-          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/></svg>
+        <button type="button" class="quick-checkin-btn" id="quickCheckInBtn">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/>
+          </svg>
           Use for Quick Check-In
         </button>
       </div>
 
-      <!-- QR Code -->
-      <div style="background: white; border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px; text-align: center;">
-        <p style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 12px;">📱 SCAN THIS QR CODE</p>
-        <img id="qrCodeImage" src="${qrUrl}" alt="Check-in QR Code" style="width: 200px; height: 200px; margin: 0 auto; display: block;">
-        <div style="display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap;">
-          <button type="button" class="download-btn" id="downloadQrBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-            Download QR Image
-          </button>
+      <!-- QR Code Section -->
+      <div class="qr-code-card">
+        <div class="qr-code-header">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13-1h-2v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/>
+          </svg>
+          Your QR Code
         </div>
+        <div class="qr-code-wrapper">
+          <img id="qrCodeImage" src="${qrUrl}" alt="Check-in QR Code" class="qr-code-image">
+        </div>
+        <p class="qr-code-hint">Scan this code for instant check-in</p>
+        <button type="button" class="download-qr-btn" id="downloadQrBtn">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+          </svg>
+          Download QR Image
+        </button>
       </div>
 
-      <!-- Instructions -->
-      <div style="background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%); border: 2px solid #a855f7; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-        <p style="color: #6b21a8; font-size: 12px; font-weight: 600; margin-bottom: 12px;">✓ IMPORTANT:</p>
-        <ul style="color: #7c3aed; font-size: 13px; margin: 0; padding-left: 20px; line-height: 1.8;">
-          <li>Save your User ID for future visits</li>
-          <li>Share the QR code to auto-fill check-in</li>
-          <li>Scan the code or use your ID to check in</li>
+      <!-- Tips Section -->
+      <div class="tips-card">
+        <div class="tips-header">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+          </svg>
+          Quick Tips
+        </div>
+        <ul class="tips-list">
+          <li>
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+            Save your User ID for future visits
+          </li>
+          <li>
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+            Screenshot or download your QR code
+          </li>
+          <li>
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+            Use QR or ID for faster check-in
+          </li>
         </ul>
       </div>
 
-      <div class="confirmation-buttons" style="grid-template-columns: 1fr;">
-        <button type="button" class="confirm-yes" id="goToCheckInBtn" style="margin: 0; width: 100%; padding: 14px;">
-          ✓ Go to Check-In
-        </button>
-      </div>
+      <!-- Action Button -->
+      <button type="button" class="go-checkin-btn" id="goToCheckInBtn">
+        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        </svg>
+        Continue to Check-In
+      </button>
     </div>
   `;
 	document.body.appendChild(modal);

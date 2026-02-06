@@ -4,7 +4,6 @@ import { TabNav } from "./components/TabNav";
 import { RegistrationForm, setupRegistrationForm } from "./components/RegistrationForm";
 import { CheckInForm, setupCheckInForm, setCheckInUserId } from "./components/CheckInForm";
 import { QRScanner, setupQRScanner, checkUrlParams } from "./components/QRScanner";
-import { AdminDashboard, setupAdminDashboard } from "./components/AdminDashboard";
 import { showRegistrationComplete } from "./components/RegistrationSuccess";
 import { switchTab, loadUserId } from "./utils";
 import { validateUserId } from "./types";
@@ -14,14 +13,13 @@ function renderApp(): void {
 	if (!app) return;
 
 	app.innerHTML = `
-    <div class="h-full overflow-auto">
-      <div class="max-w-4xl mx-auto p-6">
+    <div class="app-container">
+      <div class="app-content">
         ${Header()}
         ${TabNav()}
         ${RegistrationForm()}
         ${CheckInForm()}
         ${QRScanner()}
-        ${AdminDashboard()}
         <div id="toastContainer"></div>
       </div>
     </div>
@@ -51,9 +49,6 @@ function renderApp(): void {
 		switchTab("login");
 		setCheckInUserId(userId);
 	});
-
-	// Setup admin dashboard
-	setupAdminDashboard();
 
 	// Check URL params for auto-fill
 	const autoFillUserId = checkUrlParams();

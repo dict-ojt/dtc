@@ -207,7 +207,6 @@ export function switchTab(tab: string): void {
 		register: "attendanceForm",
 		login: "loginSection",
 		qrscan: "qrScanSection",
-		admin: "adminSection",
 	};
 
 	const contentId = contentMap[tab];
