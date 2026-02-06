@@ -12,17 +12,52 @@ import type {
 
 const API_BASE_URL = "https://dict-db.stevendavemiranda2.workers.dev";
 
+// Session management
+let sessionId: string | null = null;
+
+export function setSessionId(id: string | null): void {
+	sessionId = id;
+	if (id) {
+		sessionStorage.setItem('dict_admin_session', id);
+	} else {
+		sessionStorage.removeItem('dict_admin_session');
+	}
+}
+
+export function getSessionId(): string | null {
+	if (!sessionId) {
+		sessionId = sessionStorage.getItem('dict_admin_session');
+	}
+	return sessionId;
+}
+
 async function apiRequest<T>(
 	endpoint: string,
 	options?: RequestInit
 ): Promise<T> {
+	const headers: Record<string, string> = {
+		"Content-Type": "application/json",
+		...(options?.headers instanceof Headers 
+			? Object.fromEntries(options.headers.entries())
+			: (options?.headers as Record<string, string>))
+	};
+
+	// Add session ID if available
+	const session = getSessionId();
+	if (session) {
+		headers['X-Session-Id'] = session;
+	}
+
 	const response = await fetch(`${API_BASE_URL}${endpoint}`, {
 		...options,
-		headers: {
-			"Content-Type": "application/json",
-			...options?.headers,
-		},
+		headers,
 	});
+
+	// Handle 401 Unauthorized - clear session
+	if (response.status === 401) {
+		setSessionId(null);
+		throw new Error(response.statusText || "Unauthorized");
+	}
 
 	if (!response.ok) {
 		const error = await response.json().catch(() => ({ error: "Unknown error" }));
@@ -115,6 +150,37 @@ export const api = {
 	async deleteAllLogs(): Promise<DeleteResponse> {
 		return apiRequest<DeleteResponse>("/api/logs", {
 			method: "DELETE",
+		});
+	},
+
+	// Admin authentication
+	async adminLogin(username: string, password: string): Promise<{
+		success: boolean;
+		sessionId: string;
+		message: string;
+	}> {
+		return apiRequest('/api/admin/login', {
+			method: 'POST',
+			body: JSON.stringify({ username, password }),
+		});
+	},
+
+	// Admin logout
+	async adminLogout(): Promise<{ success: boolean; message: string }> {
+		return apiRequest('/api/admin/logout', {
+			method: 'POST',
+		});
+	},
+
+	// Update admin credentials
+	async updateAdminCredentials(data: {
+		currentPassword: string;
+		newUsername?: string;
+		newPassword?: string;
+	}): Promise<{ success: boolean; message: string }> {
+		return apiRequest('/api/admin/credentials', {
+			method: 'PUT',
+			body: JSON.stringify(data),
 		});
 	},
 };

@@ -1,6 +1,6 @@
 import "./style.css";
 import { showToast, setButtonLoading } from "./utils";
-import { api } from "./api";
+import { api, setSessionId, getSessionId } from "./api";
 import type { UserRegistration, CheckInEntry } from "./types";
 
 // Admin state
@@ -29,7 +29,9 @@ let regAgencySearch = "";
 
 // Check authentication
 function checkAuth(): boolean {
-	return sessionStorage.getItem("dict_admin_auth") === "true";
+	const authFlag = sessionStorage.getItem("dict_admin_auth") === "true";
+	const session = getSessionId();
+	return authFlag && session !== null;
 }
 
 function setAuth(authenticated: boolean): void {
@@ -37,6 +39,7 @@ function setAuth(authenticated: boolean): void {
 		sessionStorage.setItem("dict_admin_auth", "true");
 	} else {
 		sessionStorage.removeItem("dict_admin_auth");
+		setSessionId(null);
 	}
 }
 
@@ -110,18 +113,18 @@ function setupLoginForm(): void {
 		const username = (document.getElementById("adminUsername") as HTMLInputElement).value;
 		const password = (document.getElementById("adminPassword") as HTMLInputElement).value;
 
-		if (username === "admin" && password === "Password123!") {
-			try {
-				setButtonLoading(loginBtn, true, "Signing in...");
-				await new Promise(resolve => setTimeout(resolve, 500));
-				setAuth(true);
-				showToast("Login successful!");
-				renderApp();
-			} finally {
-				setButtonLoading(loginBtn, false);
-			}
-		} else {
-			showToast("Invalid credentials", "error");
+		setButtonLoading(loginBtn, true, "Signing in...");
+
+		try {
+			const result = await api.adminLogin(username, password);
+			setSessionId(result.sessionId);
+			setAuth(true);
+			showToast("Login successful!");
+			renderApp();
+		} catch (error) {
+			showToast(error instanceof Error ? error.message : "Login failed", "error");
+		} finally {
+			setButtonLoading(loginBtn, false);
 		}
 	});
 }
@@ -582,10 +585,16 @@ function setupDashboard(): void {
 	});
 
 	// Logout
-	document.getElementById("logoutBtn")?.addEventListener("click", () => {
-		setAuth(false);
-		showToast("Logged out successfully");
-		renderApp();
+	document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+		try {
+			await api.adminLogout();
+		} catch (error) {
+			console.error('Logout error:', error);
+		} finally {
+			setAuth(false);
+			showToast("Logged out successfully");
+			renderApp();
+		}
 	});
 
 	// Mobile menu
@@ -1422,48 +1431,64 @@ function handleStatClick(stat: string): void {
 }
 
 // Handle security settings update
-function handleSecurityUpdate(): void {
+async function handleSecurityUpdate(): Promise<void> {
 	const currentPasswordInput = document.getElementById("currentPassword") as HTMLInputElement;
 	const newUsernameInput = document.getElementById("newUsername") as HTMLInputElement;
 	const newPasswordInput = document.getElementById("newPassword") as HTMLInputElement;
 	const confirmPasswordInput = document.getElementById("confirmPassword") as HTMLInputElement;
+	const submitBtn = document.querySelector("#securityForm button[type='submit']") as HTMLButtonElement;
 
 	const currentPassword = currentPasswordInput.value;
 	const newUsername = newUsernameInput.value.trim();
 	const newPassword = newPasswordInput.value;
 	const confirmPassword = confirmPasswordInput.value;
 
-	// Verify current password (hardcoded for now - in production, this would be server-side)
-	if (currentPassword !== "Password123!") {
-		showToast("Current password is incorrect", "error");
-		return;
-	}
-
-	// Validate new password if provided
+	// Validate password match
 	if (newPassword && newPassword !== confirmPassword) {
 		showToast("New passwords do not match", "error");
 		return;
 	}
 
+	// Validate password length
 	if (newPassword && newPassword.length < 8) {
 		showToast("New password must be at least 8 characters", "error");
 		return;
 	}
 
-	// Show success (in production, this would update credentials on the server)
-	let message = "Settings updated successfully";
-	if (newUsername) {
-		message = `Username would be changed to: ${newUsername}`;
-	}
-	if (newPassword) {
-		message = newUsername ? "Username and password updated" : "Password updated successfully";
+	// Must provide at least one change
+	if (!newUsername && !newPassword) {
+		showToast("Please provide a new username or password", "error");
+		return;
 	}
 
-	showToast(message);
+	setButtonLoading(submitBtn, true, "Updating...");
 
-	// Close modal and clear form
-	document.getElementById("securityModal")?.classList.remove("active");
-	(document.getElementById("securityForm") as HTMLFormElement)?.reset();
+	try {
+		const result = await api.updateAdminCredentials({
+			currentPassword,
+			newUsername: newUsername || undefined,
+			newPassword: newPassword || undefined,
+		});
+
+		showToast(result.message, "success");
+
+		// If password was changed, sessions are invalidated - need to re-login
+		if (newPassword) {
+			showToast("Please log in again with your new password");
+			setTimeout(() => {
+				setAuth(false);
+				renderApp();
+			}, 2000);
+		}
+
+		// Close modal and clear form
+		document.getElementById("securityModal")?.classList.remove("active");
+		(document.getElementById("securityForm") as HTMLFormElement)?.reset();
+	} catch (error) {
+		showToast(error instanceof Error ? error.message : "Update failed", "error");
+	} finally {
+		setButtonLoading(submitBtn, false);
+	}
 }
 
 // Initialize app
