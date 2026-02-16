@@ -10,7 +10,6 @@ let currentCalendarDate = new Date();
 let selectedDate: string | null = null;
 let activeView: "checkins" | "registrations" | "profile" = "checkins";
 let previousView: "checkins" | "registrations" = "checkins";
-let selectedUserId: string | null = null;
 let displayMode: "logs" | "calendar" | "analytics" = "logs";
 let regCurrentPage = 1;
 let checkinCurrentPage = 1;
@@ -587,7 +586,6 @@ function setupDashboard(): void {
 	// Back button
 	document.getElementById("backToDashboardBtn")?.addEventListener("click", () => {
 		activeView = previousView;
-		selectedUserId = null;
 		renderApp();
 	});
 
@@ -1557,7 +1555,6 @@ function viewProfile(userId: string): void {
 		previousView = activeView as "checkins" | "registrations";
 	}
 	activeView = "profile";
-	selectedUserId = userId;
 	renderApp();
 	renderProfileSection(userId);
 }
