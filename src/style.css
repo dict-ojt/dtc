@@ -1505,10 +1505,62 @@ tbody tr:hover {
 }
 
 .qr-camera-controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
   margin-top: 1rem;
+}
+
+@media (min-width: 480px) {
+  .qr-camera-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+  }
+  
+  .camera-select-wrapper {
+    grid-column: 1 / -1;
+  }
+}
+
+.camera-select-wrapper {
+  margin-bottom: 0.25rem;
+}
+
+.camera-select {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border: 2px solid var(--primary-200);
+  border-radius: 0.75rem;
+  background-color: var(--white);
+  color: var(--primary-800);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+  transition: all 0.2s ease;
+}
+
+.camera-select:hover:not(:disabled) {
+  border-color: var(--primary-400);
+}
+
+.camera-select:focus {
+  outline: none;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(37, 99, 168, 0.1);
+}
+
+.camera-select:disabled {
+  background-color: var(--gray-100);
+  color: var(--gray-400);
+  cursor: not-allowed;
+  border-color: var(--gray-200);
 }
 
 .qr-camera-controls .submit-btn,

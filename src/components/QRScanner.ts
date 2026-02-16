@@ -57,6 +57,12 @@ export function QRScanner(): string {
             </div>
           </div>
           <div class="qr-camera-controls">
+            <div class="camera-select-wrapper">
+              <select id="cameraSelection" class="camera-select">
+                <option value="environment">Back Camera</option>
+                <option value="user">Front Camera</option>
+              </select>
+            </div>
             <button id="startQrBtn" type="button" class="qr-btn start-btn">
               <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z"/>
@@ -144,9 +150,60 @@ export function setupQRScanner(onQRDetected: (userId: string) => void): void {
 	const stopQrBtn = document.getElementById("stopQrBtn") as HTMLButtonElement | null;
 	const videoEl = document.getElementById("qrVideo") as HTMLVideoElement | null;
 	const cameraStatus = document.getElementById("cameraStatus");
+	const cameraSelection = document.getElementById("cameraSelection") as HTMLSelectElement | null;
 
 	let currentQRUserId: string | null = null;
 	let qrScanner: QrScanner | null = null;
+
+	// Populate cameras
+	void (async () => {
+		if (cameraSelection) {
+			try {
+				const cameras = await QrScanner.listCameras(true);
+				if (cameras.length > 0) {
+					cameraSelection.innerHTML = "";
+					cameras.forEach((camera) => {
+						const option = document.createElement("option");
+						option.value = camera.id;
+						option.text = camera.label || `Camera ${camera.id}`;
+						cameraSelection.appendChild(option);
+					});
+					
+					// Prefer saved camera > back camera ("environment") > last camera
+					const savedCameraId = localStorage.getItem("qr-camera-id");
+					const savedCamera = cameras.find(c => c.id === savedCameraId);
+					
+					if (savedCamera) {
+						cameraSelection.value = savedCamera.id;
+					} else {
+						const backCamera = cameras.find(c => 
+							(c.label || "").toLowerCase().includes("back") || 
+							(c.label || "").toLowerCase().includes("environment")
+						);
+						if (backCamera) {
+							cameraSelection.value = backCamera.id;
+						} else {
+							// Usually the last camera is the back one on mobile
+							cameraSelection.value = cameras[cameras.length - 1].id;
+						}
+					}
+					cameraSelection.disabled = false;
+				}
+			} catch (e) {
+				console.warn("Could not list cameras", e);
+			}
+		}
+	})();
+
+	cameraSelection?.addEventListener("change", async () => {
+		const newCameraId = cameraSelection.value;
+		localStorage.setItem("qr-camera-id", newCameraId);
+		
+		if (qrScanner && startQrBtn && startQrBtn.disabled) {
+			// Camera is running, switch it
+			await qrScanner.setCamera(newCameraId);
+		}
+	});
 
 	uploadArea?.addEventListener("click", () => qrFileInput?.click());
 	uploadArea?.addEventListener("dragover", (e) => {
@@ -231,7 +288,7 @@ export function setupQRScanner(onQRDetected: (userId: string) => void): void {
 					(result) => {
 						handleDecoded(result.data);
 					},
-					{ returnDetailedScanResult: true, preferredCamera: "environment" }
+					{ returnDetailedScanResult: true, preferredCamera: cameraSelection?.value || "environment" }
 				);
 			}
 			await qrScanner.start();
