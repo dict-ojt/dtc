@@ -5657,3 +5657,219 @@ table td {
 [data-theme="dark"] .service-tag {
   font-weight: 700;
 }
+
+/* ===== Profile Page ===== */
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clickable-row:hover {
+  background-color: var(--primary-50) !important;
+}
+
+.profile-section {
+  animation: fadeIn 0.3s ease;
+}
+
+.profile-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 0.5rem;
+  color: var(--gray-700);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+  color: var(--primary-600);
+}
+
+.profile-card {
+  background: var(--white);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin-bottom: 2rem;
+}
+
+.profile-main-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--gray-200);
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .profile-main-info {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+  }
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-500) 100%);
+  color: var(--white);
+  font-size: 2rem;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(37, 99, 168, 0.3);
+}
+
+.profile-names h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 0.25rem;
+}
+
+.profile-id {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.profile-stats-badges {
+  display: flex;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.p-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  background: var(--primary-50);
+  border-radius: 0.75rem;
+  border: 1px solid var(--primary-100);
+}
+
+.p-label {
+  font-size: 0.75rem;
+  color: var(--primary-600);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.p-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-800);
+}
+
+.profile-details-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .profile-details-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .profile-details-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.detail-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-group span {
+  font-size: 1rem;
+  color: var(--gray-800);
+  font-weight: 500;
+}
+
+.profile-divider {
+  height: 1px;
+  background: var(--gray-200);
+  margin: 2rem 0;
+}
+
+.profile-section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--primary-800);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-history {
+  background: var(--white);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.service-tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--gray-100);
+  color: var(--gray-700);
+  margin-right: 0.25rem;
+}
+
+.service-tag.printing {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+.service-tag.pc-use {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+.service-tag.training {
+  background: #ccfbf1;
+  color: #0f766e;
+}

@@ -8,7 +8,9 @@ let registrations: UserRegistration[] = [];
 let checkins: CheckInEntry[] = [];
 let currentCalendarDate = new Date();
 let selectedDate: string | null = null;
-let activeView: "checkins" | "registrations" = "checkins";
+let activeView: "checkins" | "registrations" | "profile" = "checkins";
+let previousView: "checkins" | "registrations" = "checkins";
+let selectedUserId: string | null = null;
 let displayMode: "logs" | "calendar" | "analytics" = "logs";
 let regCurrentPage = 1;
 let checkinCurrentPage = 1;
@@ -205,6 +207,9 @@ function renderDashboard(app: HTMLElement): void {
              </div>
           </div>
         </header>
+
+        <!-- Dashboard Views -->
+        <div id="dashboardView" style="display: ${activeView === 'profile' ? 'none' : 'block'}">
 
         <!-- Statistics Cards -->
         <section class="stats-section">
@@ -471,6 +476,23 @@ function renderDashboard(app: HTMLElement): void {
             </div>
           </div>
         </section>
+        </div>
+
+        <!-- Profile Section -->
+        <section id="profileSection" class="profile-section" style="display: ${activeView === 'profile' ? 'block' : 'none'}">
+          <div class="profile-header-bar">
+            <button id="backToDashboardBtn" class="back-btn">
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+              </svg>
+              Back
+            </button>
+            <h2>User Profile</h2>
+          </div>
+          <div id="profileContent" class="profile-content">
+            <!-- User details will be injected here -->
+          </div>
+        </section>
       </main>
 
       <!-- Mobile Overlay -->
@@ -561,6 +583,13 @@ function renderDashboard(app: HTMLElement): void {
 function setupDashboard(): void {
 	// Theme switcher code removed
 
+
+	// Back button
+	document.getElementById("backToDashboardBtn")?.addEventListener("click", () => {
+		activeView = previousView;
+		selectedUserId = null;
+		renderApp();
+	});
 
 	// Navigation
 	document.querySelectorAll(".nav-item[data-view]").forEach(btn => {
@@ -1023,7 +1052,7 @@ function displayCalendarData(): void {
 				const reg = registrations.find(r => r.user_id === c.user_id);
 				const name = reg ? `${reg.first_name} ${reg.last_name}` : "Unknown";
 				const services = c.services.map(s => `<span class="service-tag ${s.toLowerCase().replace(' ', '-')}">${s}</span>`).join("");
-				return `<tr class="${idx % 2 === 0 ? 'even' : 'odd'}">
+				return `<tr class="${idx % 2 === 0 ? 'even' : 'odd'} clickable-row" data-userid="${c.user_id}">
 					<td class="user-id">${c.user_id}</td>
 					<td>${name}</td>
 					<td class="services-cell">${services}</td>
@@ -1037,7 +1066,7 @@ function displayCalendarData(): void {
 			tableBody.innerHTML = `<tr><td colspan="4" class="empty-message">No registrations on this date</td></tr>`;
 		} else {
 			tableBody.innerHTML = (data as UserRegistration[]).map((r, idx) => `
-				<tr class="${idx % 2 === 0 ? 'even' : 'odd'}">
+				<tr class="${idx % 2 === 0 ? 'even' : 'odd'} clickable-row" data-userid="${r.user_id}">
 					<td class="user-id">${r.user_id}</td>
 					<td>${r.first_name} ${r.last_name}</td>
 					<td class="email">${r.email}</td>
@@ -1046,6 +1075,14 @@ function displayCalendarData(): void {
 			`).join("");
 		}
 	}
+
+	// Add click listeners
+	tableBody.querySelectorAll("tr.clickable-row").forEach(row => {
+		row.addEventListener("click", () => {
+			const userId = (row as HTMLElement).dataset.userid;
+			if (userId) viewProfile(userId);
+		});
+	});
 }
 
 function renderAnalytics(): void {
@@ -1274,7 +1311,7 @@ function displayData(): void {
 				const services = c.services.map(s => `<span class="service-tag ${s.toLowerCase().replace(' ', '-')}">${s}</span>`).join("");
 
 				return `
-          <tr class="${idx % 2 === 0 ? 'even' : 'odd'}">
+          <tr class="${idx % 2 === 0 ? 'even' : 'odd'} clickable-row" data-userid="${c.user_id}">
             <td class="user-id">${c.user_id}</td>
             <td>${name}</td>
             <td class="services-cell">${services}</td>
@@ -1290,7 +1327,7 @@ function displayData(): void {
 			tableBody.innerHTML = `<tr><td colspan="6" class="empty-message">No registrations found</td></tr>`;
 		} else {
 			tableBody.innerHTML = (pageData as UserRegistration[]).map((r, idx) => `
-        <tr class="${idx % 2 === 0 ? 'even' : 'odd'}">
+        <tr class="${idx % 2 === 0 ? 'even' : 'odd'} clickable-row" data-userid="${r.user_id}">
           <td class="row-number">${startIdx + idx + 1}</td>
           <td class="user-id">${r.user_id}</td>
           <td>${r.first_name} ${r.last_name}</td>
@@ -1301,6 +1338,14 @@ function displayData(): void {
       `).join("");
 		}
 	}
+
+	// Add click listeners to rows
+	tableBody.querySelectorAll("tr.clickable-row").forEach(row => {
+		row.addEventListener("click", () => {
+			const userId = (row as HTMLElement).dataset.userid;
+			if (userId) viewProfile(userId);
+		});
+	});
 
 	// Update pagination
 	const paginationInfo = document.getElementById("paginationInfo");
@@ -1489,6 +1534,154 @@ async function handleSecurityUpdate(): Promise<void> {
 	} finally {
 		setButtonLoading(submitBtn, false);
 	}
+}
+
+function viewProfile(userId: string): void {
+	if (activeView !== "profile") {
+		previousView = activeView as "checkins" | "registrations";
+	}
+	activeView = "profile";
+	selectedUserId = userId;
+	renderApp();
+	renderProfileSection(userId);
+}
+
+function renderProfileSection(userId: string): void {
+	const container = document.getElementById("profileContent");
+	if (!container) return;
+
+	const user = registrations.find(r => r.user_id === userId);
+	if (!user) {
+		container.innerHTML = "<p>User not found</p>";
+		return;
+	}
+
+	// Calculate stats for this user
+	const userCheckins = checkins.filter(c => c.user_id === userId);
+	const totalVisits = userCheckins.length;
+	const lastVisit = userCheckins.length > 0
+		? new Date(Math.max(...userCheckins.map(c => c.entry_time)) * 1000).toLocaleString()
+		: "Never";
+
+	container.innerHTML = `
+		<div class="profile-card">
+			<div class="profile-main-info">
+				<div class="profile-avatar">${user.first_name[0]}${user.last_name[0]}</div>
+				<div class="profile-names">
+					<h3>${user.first_name} ${user.middle_initial ? user.middle_initial + '.' : ''} ${user.last_name} ${user.suffix || ''}</h3>
+					<span class="profile-id">ID: ${user.user_id}</span>
+				</div>
+				<div class="profile-stats-badges">
+					<div class="p-badge">
+						<span class="p-label">Total Visits</span>
+						<span class="p-value">${totalVisits}</span>
+					</div>
+					<div class="p-badge">
+						<span class="p-label">Last Visit</span>
+						<span class="p-value">${lastVisit}</span>
+					</div>
+				</div>
+			</div>
+			
+			<div class="profile-details-grid">
+				<div class="detail-group">
+					<label>Email</label>
+					<span>${user.email}</span>
+				</div>
+				<div class="detail-group">
+					<label>Phone</label>
+					<span>${user.phone}</span>
+				</div>
+				<div class="detail-group">
+					<label>Gender</label>
+					<span>${user.gender}</span>
+				</div>
+				<div class="detail-group">
+					<label>Birthdate</label>
+					<span>${user.birthdate} (${user.age_group})</span>
+				</div>
+				<div class="detail-group">
+					<label>Civil Status</label>
+					<span>${user.civil_status}</span>
+				</div>
+				<div class="detail-group">
+					<label>Nationality</label>
+					<span>${user.nationality}</span>
+				</div>
+				<div class="detail-group">
+					<label>Address</label>
+					<span>${user.address.building}, ${user.address.barangay}, ${user.address.city}, ${user.address.province}</span>
+				</div>
+				<div class="detail-group">
+					<label>Region</label>
+					<span>${user.region}</span>
+				</div>
+			</div>
+
+			<div class="profile-divider"></div>
+			<h4 class="profile-section-title">Professional Information</h4>
+			
+			<div class="profile-details-grid">
+				<div class="detail-group">
+					<label>Sector</label>
+					<span>${user.sector}</span>
+				</div>
+				<div class="detail-group">
+					<label>Agency</label>
+					<span>${user.agency}</span>
+				</div>
+				<div class="detail-group">
+					<label>Office</label>
+					<span>${user.office}</span>
+				</div>
+				<div class="detail-group">
+					<label>Designation</label>
+					<span>${user.designation}</span>
+				</div>
+			</div>
+
+			<div class="profile-divider"></div>
+			<h4 class="profile-section-title">Other Information</h4>
+			
+			<div class="profile-details-grid">
+				<div class="detail-group">
+					<label>Senior Citizen</label>
+					<span>${user.senior_citizen}</span>
+				</div>
+				<div class="detail-group">
+					<label>Differently Abled</label>
+					<span>${user.differently_abled}</span>
+				</div>
+				<div class="detail-group">
+					<label>Solo Parent</label>
+					<span>${user.solo_parent}</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="profile-history">
+			<h4 class="profile-section-title">Recent Check-ins</h4>
+			<div class="table-container">
+				<table class="profile-table">
+					<thead>
+						<tr>
+							<th>Date & Time</th>
+							<th>Services</th>
+						</tr>
+					</thead>
+					<tbody>
+						${userCheckins.sort((a, b) => b.entry_time - a.entry_time).slice(0, 10).map(c => `
+							<tr>
+								<td>${new Date(c.entry_time * 1000).toLocaleString()}</td>
+								<td>${c.services.map(s => `<span class="service-tag ${s.toLowerCase().replace(' ', '-')}">${s}</span>`).join("")}</td>
+							</tr>
+						`).join("")}
+						${userCheckins.length === 0 ? '<tr><td colspan="2" class="empty-message">No check-ins found</td></tr>' : ''}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	`;
 }
 
 // Initialize app
