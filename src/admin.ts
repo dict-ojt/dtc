@@ -1391,34 +1391,89 @@ function exportData(): void {
 	const today = new Date().toISOString().slice(0, 10);
 
 	if (activeView === "checkins") {
-		const header = ["User ID", "First Name", "Last Name", "Email", "Address", "Services", "Check-in Time"];
+		const header = [
+			"Check-in Time", "Services", "User ID", 
+			"First Name", "Middle Initial", "Last Name", "Suffix", 
+			"Email", "Phone", "Gender", "Birthdate", "Age Group", 
+			"Civil Status", "Nationality", 
+			"Region", "Province", "City", "Barangay", "Building/House No.", "Street", 
+			"Sector", "Agency", "Office", "Designation", 
+			"Senior Citizen", "Differently Abled", "Solo Parent", 
+			"Registration Date"
+		];
 		const rows = (data as CheckInEntry[]).map(entry => {
 			const reg = registrations.find(r => r.user_id === entry.user_id);
-			const address = reg ? `${reg.address.building}, ${reg.address.barangay}, ${reg.address.city}, ${reg.address.province}` : "";
 			return [
+				new Date(entry.entry_time * 1000).toLocaleString(),
+				entry.services.join("; "),
 				entry.user_id,
 				reg?.first_name || "",
+				reg?.middle_initial || "",
 				reg?.last_name || "",
+				reg?.suffix || "",
 				reg?.email || "",
-				address,
-				entry.services.join("; "),
-				new Date(entry.entry_time * 1000).toLocaleString()
+				reg?.phone || "",
+				reg?.gender || "",
+				reg?.birthdate || "",
+				reg?.age_group || "",
+				reg?.civil_status || "",
+				reg?.nationality || "",
+				reg?.region || "",
+				reg?.address?.province || "",
+				reg?.address?.city || "",
+				reg?.address?.barangay || "",
+				reg?.address?.building || "",
+				reg?.address?.street || "",
+				reg?.sector || "",
+				reg?.agency || "",
+				reg?.office || "",
+				reg?.designation || "",
+				reg?.senior_citizen || "",
+				reg?.differently_abled || "",
+				reg?.solo_parent || "",
+				reg ? new Date(reg.created_at * 1000).toLocaleString() : ""
 			].map(escapeCsvValue);
 		});
 		csv = [header.map(escapeCsvValue).join(","), ...rows.map(row => row.join(","))].join("\n");
 		downloadCsvFile(csv, `checkins-${today}.csv`);
 	} else {
-		const header = ["User ID", "First Name", "Last Name", "Email", "Address", "Agency", "Region", "Registration Date"];
+		const header = [
+			"User ID", 
+			"First Name", "Middle Initial", "Last Name", "Suffix", 
+			"Email", "Phone", "Gender", "Birthdate", "Age Group", 
+			"Civil Status", "Nationality", 
+			"Region", "Province", "City", "Barangay", "Building/House No.", "Street", 
+			"Sector", "Agency", "Office", "Designation", 
+			"Senior Citizen", "Differently Abled", "Solo Parent", 
+			"Registration Date"
+		];
 		const rows = (data as UserRegistration[]).map(r => {
-			const address = `${r.address.building}, ${r.address.barangay}, ${r.address.city}, ${r.address.province}`;
 			return [
 				r.user_id,
 				r.first_name,
+				r.middle_initial || "",
 				r.last_name,
+				r.suffix || "",
 				r.email,
-				address,
-				r.agency,
+				r.phone,
+				r.gender,
+				r.birthdate,
+				r.age_group,
+				r.civil_status,
+				r.nationality,
 				r.region,
+				r.address.province,
+				r.address.city,
+				r.address.barangay,
+				r.address.building,
+				r.address.street || "",
+				r.sector,
+				r.agency,
+				r.office,
+				r.designation,
+				r.senior_citizen,
+				r.differently_abled,
+				r.solo_parent,
 				new Date(r.created_at * 1000).toLocaleString()
 			].map(escapeCsvValue);
 		});
