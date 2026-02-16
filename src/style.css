@@ -2502,7 +2502,7 @@ tbody tr:hover {
 }
 
 .table-container table {
-  min-width: 600px;
+  min-width: 1000px;
 }
 
 .user-id {

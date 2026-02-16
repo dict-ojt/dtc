@@ -1044,35 +1044,40 @@ function displayCalendarData(): void {
 	});
 
 	if (activeView === "checkins") {
-		tableHead.innerHTML = `<tr><th>User ID</th><th>Name</th><th>Services</th><th>Time</th></tr>`;
+		tableHead.innerHTML = `<tr><th>User ID</th><th>Name</th><th>Address</th><th>Services</th><th>Time</th></tr>`;
 		if (data.length === 0) {
-			tableBody.innerHTML = `<tr><td colspan="4" class="empty-message">No check-ins on this date</td></tr>`;
+			tableBody.innerHTML = `<tr><td colspan="5" class="empty-message">No check-ins on this date</td></tr>`;
 		} else {
 			tableBody.innerHTML = (data as CheckInEntry[]).map((c, idx) => {
 				const reg = registrations.find(r => r.user_id === c.user_id);
 				const name = reg ? `${reg.first_name} ${reg.last_name}` : "Unknown";
+				const address = reg ? `${reg.address.building}, ${reg.address.barangay}, ${reg.address.city}, ${reg.address.province}` : "Unknown";
 				const services = c.services.map(s => `<span class="service-tag ${s.toLowerCase().replace(' ', '-')}">${s}</span>`).join("");
 				return `<tr class="${idx % 2 === 0 ? 'even' : 'odd'} clickable-row" data-userid="${c.user_id}">
 					<td class="user-id">${c.user_id}</td>
 					<td>${name}</td>
+					<td>${address}</td>
 					<td class="services-cell">${services}</td>
 					<td class="timestamp">${new Date(c.entry_time * 1000).toLocaleTimeString()}</td>
 				</tr>`;
 			}).join("");
 		}
 	} else {
-		tableHead.innerHTML = `<tr><th>User ID</th><th>Name</th><th>Email</th><th>Agency</th></tr>`;
+		tableHead.innerHTML = `<tr><th>User ID</th><th>Name</th><th>Email</th><th>Address</th><th>Agency</th></tr>`;
 		if (data.length === 0) {
-			tableBody.innerHTML = `<tr><td colspan="4" class="empty-message">No registrations on this date</td></tr>`;
+			tableBody.innerHTML = `<tr><td colspan="5" class="empty-message">No registrations on this date</td></tr>`;
 		} else {
-			tableBody.innerHTML = (data as UserRegistration[]).map((r, idx) => `
+			tableBody.innerHTML = (data as UserRegistration[]).map((r, idx) => {
+				const address = `${r.address.building}, ${r.address.barangay}, ${r.address.city}, ${r.address.province}`;
+				return `
 				<tr class="${idx % 2 === 0 ? 'even' : 'odd'} clickable-row" data-userid="${r.user_id}">
 					<td class="user-id">${r.user_id}</td>
 					<td>${r.first_name} ${r.last_name}</td>
 					<td class="email">${r.email}</td>
+					<td>${address}</td>
 					<td>${r.agency}</td>
 				</tr>
-			`).join("");
+			`}).join("");
 		}
 	}
 
@@ -1300,20 +1305,22 @@ function displayData(): void {
 	const totalPages = Math.ceil(data.length / itemsPerPage) || 1;
 
 	if (activeView === "checkins") {
-		tableHead.innerHTML = `<tr><th>User ID</th><th>Name</th><th>Services</th><th>Check-in Time</th></tr>`;
+		tableHead.innerHTML = `<tr><th>User ID</th><th>Name</th><th>Address</th><th>Services</th><th>Check-in Time</th></tr>`;
 
 		if (pageData.length === 0) {
-			tableBody.innerHTML = `<tr><td colspan="4" class="empty-message">No check-ins found</td></tr>`;
+			tableBody.innerHTML = `<tr><td colspan="5" class="empty-message">No check-ins found</td></tr>`;
 		} else {
 			tableBody.innerHTML = (pageData as CheckInEntry[]).map((c, idx) => {
 				const reg = registrations.find(r => r.user_id === c.user_id);
 				const name = reg ? `${reg.first_name} ${reg.last_name}` : "Unknown";
+				const address = reg ? `${reg.address.building}, ${reg.address.barangay}, ${reg.address.city}, ${reg.address.province}` : "Unknown";
 				const services = c.services.map(s => `<span class="service-tag ${s.toLowerCase().replace(' ', '-')}">${s}</span>`).join("");
 
 				return `
           <tr class="${idx % 2 === 0 ? 'even' : 'odd'} clickable-row" data-userid="${c.user_id}">
             <td class="user-id">${c.user_id}</td>
             <td>${name}</td>
+            <td>${address}</td>
             <td class="services-cell">${services}</td>
             <td class="timestamp">${new Date(c.entry_time * 1000).toLocaleString()}</td>
           </tr>
@@ -1321,21 +1328,24 @@ function displayData(): void {
 			}).join("");
 		}
 	} else {
-		tableHead.innerHTML = `<tr><th>#</th><th>User ID</th><th>Name</th><th>Email</th><th>Agency</th><th>Date</th></tr>`;
+		tableHead.innerHTML = `<tr><th>#</th><th>User ID</th><th>Name</th><th>Email</th><th>Address</th><th>Agency</th><th>Date</th></tr>`;
 
 		if (pageData.length === 0) {
-			tableBody.innerHTML = `<tr><td colspan="6" class="empty-message">No registrations found</td></tr>`;
+			tableBody.innerHTML = `<tr><td colspan="7" class="empty-message">No registrations found</td></tr>`;
 		} else {
-			tableBody.innerHTML = (pageData as UserRegistration[]).map((r, idx) => `
+			tableBody.innerHTML = (pageData as UserRegistration[]).map((r, idx) => {
+				const address = `${r.address.building}, ${r.address.barangay}, ${r.address.city}, ${r.address.province}`;
+				return `
         <tr class="${idx % 2 === 0 ? 'even' : 'odd'} clickable-row" data-userid="${r.user_id}">
           <td class="row-number">${startIdx + idx + 1}</td>
           <td class="user-id">${r.user_id}</td>
           <td>${r.first_name} ${r.last_name}</td>
           <td class="email">${r.email}</td>
+          <td>${address}</td>
           <td>${r.agency}</td>
           <td class="timestamp">${new Date(r.created_at * 1000).toLocaleString()}</td>
         </tr>
-      `).join("");
+      `}).join("");
 		}
 	}
 
@@ -1383,14 +1393,16 @@ function exportData(): void {
 	const today = new Date().toISOString().slice(0, 10);
 
 	if (activeView === "checkins") {
-		const header = ["User ID", "First Name", "Last Name", "Email", "Services", "Check-in Time"];
+		const header = ["User ID", "First Name", "Last Name", "Email", "Address", "Services", "Check-in Time"];
 		const rows = (data as CheckInEntry[]).map(entry => {
 			const reg = registrations.find(r => r.user_id === entry.user_id);
+			const address = reg ? `${reg.address.building}, ${reg.address.barangay}, ${reg.address.city}, ${reg.address.province}` : "";
 			return [
 				entry.user_id,
 				reg?.first_name || "",
 				reg?.last_name || "",
 				reg?.email || "",
+				address,
 				entry.services.join("; "),
 				new Date(entry.entry_time * 1000).toLocaleString()
 			].map(escapeCsvValue);
@@ -1398,16 +1410,20 @@ function exportData(): void {
 		csv = [header.map(escapeCsvValue).join(","), ...rows.map(row => row.join(","))].join("\n");
 		downloadCsvFile(csv, `checkins-${today}.csv`);
 	} else {
-		const header = ["User ID", "First Name", "Last Name", "Email", "Agency", "Region", "Registration Date"];
-		const rows = (data as UserRegistration[]).map(r => [
-			r.user_id,
-			r.first_name,
-			r.last_name,
-			r.email,
-			r.agency,
-			r.region,
-			new Date(r.created_at * 1000).toLocaleString()
-		].map(escapeCsvValue));
+		const header = ["User ID", "First Name", "Last Name", "Email", "Address", "Agency", "Region", "Registration Date"];
+		const rows = (data as UserRegistration[]).map(r => {
+			const address = `${r.address.building}, ${r.address.barangay}, ${r.address.city}, ${r.address.province}`;
+			return [
+				r.user_id,
+				r.first_name,
+				r.last_name,
+				r.email,
+				address,
+				r.agency,
+				r.region,
+				new Date(r.created_at * 1000).toLocaleString()
+			].map(escapeCsvValue);
+		});
 		csv = [header.map(escapeCsvValue).join(","), ...rows.map(row => row.join(","))].join("\n");
 		downloadCsvFile(csv, `registrations-${today}.csv`);
 	}
